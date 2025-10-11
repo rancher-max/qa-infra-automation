@@ -1,0 +1,70 @@
+#!groovy
+// Declarative Pipeline Syntax
+@Library('qa-jenkins-library') _
+
+def runningContainerName
+
+pipeline {
+  agent any
+
+  environment {
+    // Define environment variables here.  These are available throughout the pipeline.
+    image = 'maxross/ansible-runner:latest'
+    kubeconfig = 'kubeconfig.yaml'
+    playbookDir = "ansible/${params.PLAYBOOK_DIRECTORY}"
+  }
+
+  stages {
+    stage('Checkout repo and configure environment') {
+      steps {
+        script {
+          project.checkout(repository: params.REPO, branch: params.BRANCH, target: 'ansible')
+
+          def searchString = "_FILE" // The string to search for in variable names
+          def envVars = sh(script: 'env', returnStdout: true).trim().split('\n')
+
+          envVars.each { line ->
+            def parts = line.split('=', 2)
+            if (parts.size() == 2) {
+              def varName = parts[0]
+              def varValue = parts[1]
+
+              if (varName.contains(searchString)) {
+                writeFile(file: varName.toLowerCase(), text: varValue)
+                echo "Wrote environment variable '${varName}' to '${fileName}' with content:\n${varValue}"
+              }
+            }
+          }
+        }
+        dir(playbookDir) {
+          writeFile file: kubeconfig, text: params.KUBECONFIG
+        }
+      }
+    }
+
+    stage('Run ansible playbook') {
+      steps {
+        dir(playbookDir) {
+          script {
+            runningContainerName = generate.names().container
+            sh """
+              docker run -d --rm --name ${runningContainerName} \\
+                -v ${pwd()}:/ansible \\
+                -e KUBECONFIG=/ansible/kubeconfig.yaml \\
+                ${env.image} ${params.PLAYBOOK_COMMAND}
+            """
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        // Cleanup Docker container and image
+        container.remove([ [name: runningContainerName, image: env.image] ])
+      }
+    }
+  }
+}

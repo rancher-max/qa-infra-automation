@@ -5,7 +5,6 @@ This README provides instructions on how to run the Ansible playbook for running
 ## Prerequisites
 
 Before running the playbook, ensure you have the following in addition to the [general ansible prereqs](../README.md):
-*   **Required CLI tools installed locally:** [helm](https://helm.sh/docs/intro/install/) and [steadybit](https://github.com/steadybit/cli?tab=readme-ov-file#installation) CLIs are required to be present and executable on your local machine. Follow the links for instructions to install them.
 *   **Kubernetes Cluster:** A running Kubernetes cluster.  The playbook assumes you have a `kubeconfig` file that allows access to this cluster, and that it is either at the default path (`~/.kube/config`) or you have an environment variable pointing to it (`export KUBECONFIG=/path/to/kubeconfig.yaml`)
 
 
@@ -17,9 +16,8 @@ Before running the playbook, ensure you have the following in addition to the [g
 
     ```yaml
     steadybit_token: your_token
+    experiment_key: steadybit_experiment_to_update # example: ADM-1
     steadybit_cli_version: 4.2.11 # Optional. Can set the steadybit cli version explicitly, otherwise it will just use version "4"
-    experiment_file: experiments/experiment.yml # Optional. Can specify the relative path to the experiment file. By default it will use "experiments/experiment.yml"
-    experiment_timeout: 500 # Optional. Timeout (in seconds) to wait for the experiment execution to complete. By default this is "300"
     ```
 
 2.  **Set required values for Steadybit helm installation**
@@ -49,7 +47,7 @@ Before running the playbook, ensure you have the following in addition to the [g
 
 3.  **Provide Steadybit experiment file**
 
-    Directly in this directory, create an `experiments/experiment.yml` file for updating the Steadybit chaos experiment. This can be retrieved by running a command similar to this, but using your experiment key: `steadybit experiment get -k ADM-1 -f experiments/experiment.yml`. Make any necessary edits to the `experimentVariables` in the output as required for your experiment.
+    Directly in this directory, create an `experiment.yml` file for updating the Steadybit chaos experiment. This can be retrieved by running a command similar to this, but using your experiment key: `steadybit experiment get -k ADM-1 -f experiment.yml`. Make any necessary edits to the `experimentVariables` in the output as required for your experiment.
 
 
 ## Running the Playbook

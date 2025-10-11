@@ -13,6 +13,10 @@ vars.yaml
 kubeconfig.yaml
 local.yaml
 values.yml
+<<<<<<< HEAD
+=======
+experiment.yml
+>>>>>>> 19151c3 (Add ansible playbook for running a steadybit experiment in a cluster)
 
 .vscode/
 .idea/
